@@ -10,7 +10,7 @@ sources:
     platform: csv_direct
     path: data/raw/miami_dade_tax.csv
     join_key:
-      field: folio
+      field: "Account Number"  # Raw CSV column; strip dashes -> 13-digit folio
       normalize: strip_dashes_13digit
     fields:
       account: "Account Number"
@@ -70,9 +70,8 @@ scoring:
       weight: 0.10
       normalization: log
   # Tax weight: 90% (duration 50% + amount 40%). CE: 10%. Meets 50% floor.
-  # Deed flag removed — folded into duration signal. Miami v2 template weights.
 
 output:
-  expected_parcel_range: [10000, 25000]
+  expected_parcel_range: [500, 2000]  # Intersection narrows from 17,153 (left-join) to ~766
   deal_flow_threshold: 50
   deal_flow_min_balance: 5000
