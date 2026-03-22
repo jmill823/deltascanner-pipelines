@@ -1,0 +1,64 @@
+city_id: austin
+city_name: "Austin, TX"
+state: TX
+county: Travis
+score_version: austin-v2
+pattern: socrata_address
+
+sources:
+  tax:
+    platform: socrata
+    url: "https://data.austintexas.gov/resource/6wtj-zbtb.csv"
+    path: data/raw/austin_tax.csv
+    join_key:
+      field: Property_Address
+      normalize: normalize_address
+    fields:
+      balance: Balance
+      years_delinquent: Years_Delinquent
+      owner_name: Owner_Name
+      situs_address: Property_Address
+      owner_address: null  # TODO: confirm mailing address field
+      property_type_code: Property_Type_Code
+
+  ce:
+    platform: socrata
+    # TODO: confirm Austin CE Socrata dataset ID
+    path: data/raw/austin_ce.csv
+    join_key:
+      field: address
+      normalize: normalize_address
+    fields:
+      status: Status
+      status_whitelist: ["Open", "Active"]
+      date: Case_Date
+      address: Address
+
+  enrichment:
+    platform: csv
+    fields:
+      property_type:
+        field: Property_Type_Code
+        mapping: sptd_property_type
+
+scoring:
+  method: intersection
+  components:
+    - name: delinquency_amount
+      source_field: total_delinquent_balance
+      weight: 0.40
+      normalization: log
+    - name: active_violations
+      source_field: active_violations
+      weight: 0.35
+      normalization: log
+    - name: violation_volume
+      source_field: total_violations
+      weight: 0.25
+      normalization: log
+  # WARNING: Tax weight 40% < 50% floor. Needs rebalancing. See DEVIATIONS.md.
+
+output:
+  expected_parcel_range: [1000, 2000]
+  deal_flow_threshold: 55
+  deal_flow_min_balance: 5000

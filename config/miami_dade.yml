@@ -1,0 +1,84 @@
+city_id: miami_dade
+city_name: "Miami-Dade, FL"
+state: FL
+county: Miami-Dade
+score_version: miami-v1
+pattern: fl_nal
+
+sources:
+  tax:
+    platform: csv_direct
+    path: data/raw/miami_dade_tax.csv
+    join_key:
+      field: folio
+      normalize: strip_dashes_13digit
+    fields:
+      account: "Account Number"
+      balance: "Balance Amount"
+      tax_year: "Tax Yr"
+      deed_status: "Deed Status"
+      owner_name: "Owner Name"
+      situs_address: "Property Address"
+      owner_address_1: "Owner Address Line 1"
+      owner_address_2: "Owner Address Line 2"
+      owner_city: "Owner Address City"
+      owner_state: "Owner Address State"
+      owner_zip: "Owner Address ZIP"
+      use_code: "Use Code"
+
+  ce:
+    platform: arcgis
+    url: "https://gis-mdc.muni.org/arcgis/rest/services/CodeEnforcementPublic/MapServer/0"
+    path: data/raw/miami_dade_ce.csv
+    join_key:
+      field: FOLIO
+      normalize: strip_dashes_13digit
+    fields:
+      status: CASE_STATUS
+      status_whitelist: ["1", "4", "6", "8", "9"]
+      date: CASE_DATE
+      case_num: CASE_NUM
+      description: PROBLEM_DESC
+
+  enrichment:
+    platform: nal
+    path: data/raw/miami_dade_nal.csv
+    join_key:
+      field: folio
+      normalize: strip_dashes_13digit
+    fields:
+      property_type:
+        field: Use_Code
+        mapping: fl_dor_use_code
+      owner_name: owner_name
+      situs_address: address_normalized
+
+scoring:
+  method: intersection
+  components:
+    - name: delinquency_amount
+      source_field: total_delinquent_balance
+      weight: 0.35
+      normalization: log
+    - name: delinquency_duration
+      source_field: years_delinquent
+      weight: 0.25
+      normalization: minmax
+    - name: active_violations
+      source_field: active_violations
+      weight: 0.20
+      normalization: log
+    - name: violation_recency
+      source_field: days_since_last_violation
+      weight: 0.10
+      normalization: inverse_days
+      # TODO: REMOVE - freshness-based recency prohibited. See DEVIATIONS.md.
+    - name: tax_deed_flag
+      source_field: has_deed
+      weight: 0.10
+      normalization: binary
+
+output:
+  expected_parcel_range: [10000, 25000]
+  deal_flow_threshold: 50
+  deal_flow_min_balance: 5000

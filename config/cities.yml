@@ -1,0 +1,135 @@
+# DeltaScanner — Master City Registry
+# Machine-readable source of truth for all cities and their status.
+# Last updated: 2026-03-21
+
+cities:
+  - id: austin
+    name: "Austin, TX"
+    state: TX
+    county: Travis
+    pattern: socrata_address
+    status: live
+    score_version: austin-v2
+    config: config/austin.yml
+    scored_parcels: 1231
+
+  - id: nyc
+    name: "New York City, NY"
+    state: NY
+    county: null
+    pattern: socrata_bbl
+    status: live
+    score_version: nyc-v4
+    config: config/nyc.yml
+    scored_parcels: 23358
+
+  - id: philadelphia
+    name: "Philadelphia, PA"
+    state: PA
+    county: Philadelphia
+    pattern: ce_only
+    status: live
+    score_version: philly-v2
+    config: config/philadelphia.yml
+    scored_parcels: 23888
+
+  - id: chicago
+    name: "Chicago, IL"
+    state: IL
+    county: Cook
+    pattern: socrata_pin
+    status: live
+    score_version: chicago-v2
+    config: config/chicago.yml
+    scored_parcels: 91347
+
+  - id: baltimore
+    name: "Baltimore, MD"
+    state: MD
+    county: Baltimore City
+    pattern: csv_blocklot
+    status: live
+    score_version: baltimore-v1
+    config: config/baltimore.yml
+    scored_parcels: 14773
+
+  - id: miami_dade
+    name: "Miami-Dade, FL"
+    state: FL
+    county: Miami-Dade
+    pattern: fl_nal
+    status: live
+    score_version: miami-v1
+    config: config/miami_dade.yml
+    scored_parcels: 17153
+
+  - id: dallas
+    name: "Dallas, TX"
+    state: TX
+    county: Dallas
+    pattern: tx_trw_address
+    status: live
+    score_version: dallas-v1
+    config: config/dallas.yml
+    scored_parcels: 19975
+
+  - id: fort_worth
+    name: "Fort Worth, TX"
+    state: TX
+    county: Tarrant
+    pattern: tx_fixedwidth_address
+    status: live
+    score_version: fortworth-v1
+    config: config/fort_worth.yml
+    scored_parcels: 61839
+
+  - id: orlando
+    name: "Orlando, FL"
+    state: FL
+    county: Orange
+    pattern: ce_only
+    status: live
+    score_version: orlando-v1
+    config: config/orlando.yml
+    scored_parcels: 32216
+
+  - id: fort_lauderdale
+    name: "Fort Lauderdale, FL"
+    state: FL
+    county: Broward
+    pattern: fl_nal
+    status: live
+    score_version: fortlauderdale-v1
+    config: config/fort_lauderdale.yml
+    scored_parcels: 23208
+
+  - id: jacksonville
+    name: "Jacksonville, FL"
+    state: FL
+    county: Duval
+    pattern: fl_nal
+    status: live
+    score_version: jacksonville-v1
+    config: config/jacksonville.yml
+    scored_parcels: 4375
+    notes: "Composite (CE + tax, intersection). Duval tax-only interim (43,752) also exists."
+
+  - id: houston
+    name: "Houston, TX"
+    state: TX
+    county: Harris
+    pattern: tx_fixedwidth_hcad
+    status: live
+    score_version: houston-v1
+    config: config/houston.yml
+    scored_parcels: 11970
+
+  - id: charlotte
+    name: "Charlotte, NC"
+    state: NC
+    county: Mecklenburg
+    pattern: address_only
+    status: live
+    score_version: charlotte-v1
+    config: config/charlotte.yml
+    scored_parcels: 80622

@@ -1,0 +1,68 @@
+city_id: chicago
+city_name: "Chicago, IL"
+state: IL
+county: Cook
+score_version: chicago-v2
+pattern: socrata_pin
+
+sources:
+  tax:
+    platform: socrata
+    url: "https://datacatalog.cookcountyil.gov/resource/55ju-2fs9.csv"
+    path: data/raw/chicago_tax.csv
+    join_key:
+      field: pin
+      normalize: normalize_pin
+    fields:
+      balance: total_tax_and_penalty_amount_offered
+      tax_year: tax_sale_year
+      classification: classification
+
+  ce:
+    platform: socrata
+    url: "https://data.cityofchicago.org/resource/22u3-xenr.json"
+    path: data/raw/chicago_ce.csv
+    join_key:
+      field: address
+      normalize: normalize_address
+    fields:
+      status: violation_status
+      status_whitelist: ["OPEN"]
+      date: violation_date
+      last_modified: violation_last_modified_date
+      code: violation_code
+      address: address
+    pagination:
+      page_size: 50000
+
+  enrichment:
+    platform: arcgis
+    url: "https://gis.cookcountyil.gov/traditional/rest/services/parcelHistorical/MapServer/2024"
+    join_key:
+      field: pin
+      normalize: normalize_pin
+    fields:
+      property_type:
+        field: classification
+        mapping: cook_county_class
+
+scoring:
+  method: intersection
+  components:
+    - name: delinquency_amount
+      source_field: total_delinquent_balance
+      weight: 0.45
+      normalization: log
+    - name: delinquency_duration
+      source_field: years_delinquent
+      weight: 0.25
+      normalization: minmax
+    - name: active_violations
+      source_field: active_violations
+      weight: 0.30
+      normalization: log
+
+output:
+  expected_parcel_range: [70000, 120000]
+  deal_flow_threshold: 55
+  deal_flow_min_balance: 5000

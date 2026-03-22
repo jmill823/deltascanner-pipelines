@@ -1,0 +1,65 @@
+city_id: philadelphia
+city_name: "Philadelphia, PA"
+state: PA
+county: Philadelphia
+score_version: philly-v2
+pattern: ce_only
+
+sources:
+  tax: null  # PRR pending. CE-only model.
+
+  ce:
+    platform: csv_direct
+    path: data/raw/philly_violations.csv
+    join_key:
+      field: opa_account_num
+      normalize: pad_digits_9
+    fields:
+      status: violationstatus
+      status_whitelist: ["OPEN"]
+      severity: caseprioritydesc
+      date: violationdate
+      address: address
+    supplemental:
+      - path: data/raw/philly_unsafe_buildings.csv
+        flag_field: unsafe_flag
+      - path: data/raw/philly_imminently_dangerous.csv
+        flag_field: imminently_dangerous_flag
+
+  enrichment:
+    platform: csv_direct
+    path: data/raw/philly_opa_properties_cache.csv
+    join_key:
+      field: opa_account_num
+      normalize: pad_digits_9
+    fields:
+      property_type:
+        field: building_code_description
+        mapping: null
+      owner_name: owner_1
+      zip: zip_code
+      sqft: total_area
+      year_built: year_built
+      assessed_value: market_value
+
+scoring:
+  method: ce_only
+  # DEVIATION: Cannot meet intersection or tax >= 50% rules.
+  components:
+    - name: violation_count
+      source_field: active_violations
+      weight: 0.50
+      normalization: log
+    - name: severity_tier
+      source_field: max_severity
+      weight: 0.35
+      normalization: tiered
+    - name: structural_flag
+      source_field: structural_score
+      weight: 0.15
+      normalization: linear
+
+output:
+  expected_parcel_range: [15000, 30000]
+  deal_flow_threshold: 50
+  deal_flow_min_balance: null

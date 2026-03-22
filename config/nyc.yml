@@ -1,0 +1,77 @@
+city_id: nyc
+city_name: "New York City, NY"
+state: NY
+county: null
+score_version: nyc-v4
+pattern: socrata_bbl
+
+sources:
+  tax:
+    platform: csv_direct
+    path: data/raw/nyc_tax_lien_sale.csv
+    join_key:
+      field: bbl
+      normalize: normalize_bbl
+    fields:
+      borough: Borough
+      block: Block
+      lot: Lot
+      cycle: Cycle
+      water_debt_only: Water_Debt_Only
+      month: Month
+
+  ce:
+    platform: socrata
+    url: "https://data.cityofnewyork.us/resource/wvxf-dwi5.json"
+    join_key:
+      field: bbl
+      normalize: normalize_bbl
+    fields:
+      status: violationstatus
+      status_whitelist: ["Open"]
+      violation_class: class
+      rent_impairing: rentimpairing
+      date: inspectiondate
+
+  enrichment:
+    platform: csv_direct
+    path: data/raw/nyc_pluto_cache.csv
+    join_key:
+      field: bbl
+      normalize: normalize_bbl
+    fields:
+      property_type:
+        field: building_class
+        mapping: null
+      assessed_value: assesstot
+      year_built: yearbuilt
+      sqft: bldgarea
+      units_total: unitsres
+      lot_sqft: lotarea
+      num_floors: numfloors
+
+scoring:
+  method: intersection
+  components:
+    - name: peak_cycle_ordinal
+      source_field: max_cycle
+      weight: 0.40
+      normalization: linear
+    - name: recurrence_count
+      source_field: lien_appearances
+      weight: 0.25
+      normalization: minmax
+    - name: active_violations
+      source_field: active_violations
+      weight: 0.35
+      normalization: log
+  modifiers:
+    - name: water_debt_downweight
+      condition: "water_debt_only == True"
+      effect: score_multiplier
+      value: 0.90
+
+output:
+  expected_parcel_range: [15000, 30000]
+  deal_flow_threshold: 55
+  deal_flow_min_balance: null

@@ -1,0 +1,59 @@
+city_id: baltimore
+city_name: "Baltimore, MD"
+state: MD
+county: Baltimore City
+score_version: baltimore-v1
+pattern: csv_blocklot
+
+sources:
+  tax:
+    platform: csv_direct
+    path: data/raw/baltimore_tax_lien.csv
+    join_key:
+      field: block_lot
+      normalize: pad_blocklot_7
+    fields:
+      block: BLOCK
+      lot: LOT
+      balance: TOTAL_AMOUNT
+      tax_year: TAX_SALE_YEAR
+      owner_name: OWNER_NAME
+      situs_address: PROPERTY_ADDRESS
+
+  ce:
+    platform: csv_direct
+    path: data/raw/baltimore_citations.csv
+    join_key:
+      field: block_lot
+      normalize: pad_blocklot_7
+    fields:
+      status: CitationStatus
+      status_whitelist: ["O"]
+      balance: CitationBalance
+
+  enrichment: null  # TODO: identify Baltimore enrichment source
+
+scoring:
+  method: intersection
+  components:
+    - name: lien_severity
+      source_field: total_delinquent_balance
+      weight: 0.40
+      normalization: log
+    - name: lien_recency
+      source_field: years_delinquent
+      weight: 0.25
+      normalization: minmax
+    - name: citation_count
+      source_field: active_violations
+      weight: 0.20
+      normalization: minmax
+    - name: citation_balance
+      source_field: total_citation_balance
+      weight: 0.15
+      normalization: log
+
+output:
+  expected_parcel_range: [10000, 20000]
+  deal_flow_threshold: 50
+  deal_flow_min_balance: 5000
