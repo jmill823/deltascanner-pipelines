@@ -1,0 +1,322 @@
+[
+  {
+    "city_id": "austin",
+    "city_name": "Austin, TX",
+    "checked_at": "2026-03-22T05:13:40.268073",
+    "flags": [
+      "tax source DOWN: https://data.austintexas.gov/resource/6wtj-zbtb.csv"
+    ],
+    "sources": {
+      "tax": {
+        "url": "https://data.austintexas.gov/resource/6wtj-zbtb.csv",
+        "reachable": false,
+        "status_code": 404
+      },
+      "ce": {
+        "status": "local_only",
+        "path": "data/raw/austin_ce.csv"
+      }
+    }
+  },
+  {
+    "city_id": "nyc",
+    "city_name": "New York City, NY",
+    "checked_at": "2026-03-22T05:13:41.559074",
+    "flags": [],
+    "sources": {
+      "tax": {
+        "status": "local_only",
+        "path": "data/raw/nyc_tax_lien_sale.csv"
+      },
+      "ce": {
+        "url": "https://data.cityofnewyork.us/resource/wvxf-dwi5.json",
+        "reachable": true,
+        "status_code": 200,
+        "schema": {
+          "schema_ok": true,
+          "missing_fields": [],
+          "source_fields_sample": [
+            "apartment",
+            "approveddate",
+            "block",
+            "boro",
+            "boroid",
+            "buildingid",
+            "class",
+            "currentstatus",
+            "currentstatusdate",
+            "currentstatusid"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "city_id": "philadelphia",
+    "city_name": "Philadelphia, PA",
+    "checked_at": "2026-03-22T05:13:45.548588",
+    "flags": [],
+    "sources": {
+      "tax": {
+        "status": "not_configured"
+      },
+      "ce": {
+        "status": "local_only",
+        "path": "data/raw/philly_violations.csv"
+      }
+    }
+  },
+  {
+    "city_id": "chicago",
+    "city_name": "Chicago, IL",
+    "checked_at": "2026-03-22T05:13:45.568591",
+    "flags": [],
+    "sources": {
+      "tax": {
+        "url": "https://datacatalog.cookcountyil.gov/resource/55ju-2fs9.csv",
+        "reachable": true,
+        "status_code": 200,
+        "schema": {
+          "schema_ok": true,
+          "missing_fields": [],
+          "source_fields_sample": [
+            "buyer_name",
+            "classification",
+            "cost",
+            "location_1",
+            "penalty_amount_offered",
+            "pin",
+            "sold_at_sale",
+            "tax_amount_offered",
+            "tax_sale_year",
+            "total_amount_forfeited"
+          ]
+        }
+      },
+      "ce": {
+        "url": "https://data.cityofchicago.org/resource/22u3-xenr.json",
+        "reachable": true,
+        "status_code": 200,
+        "schema": {
+          "schema_ok": true,
+          "missing_fields": [],
+          "source_fields_sample": [
+            ":@computed_region_43wa_7qmu",
+            ":@computed_region_6mkv_f3dw",
+            ":@computed_region_awaf_s7ux",
+            ":@computed_region_bdys_3d7i",
+            ":@computed_region_rpca_8um6",
+            ":@computed_region_vrxf_vc4k",
+            "address",
+            "department_bureau",
+            "id",
+            "inspection_category"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "city_id": "baltimore",
+    "city_name": "Baltimore, MD",
+    "checked_at": "2026-03-22T05:13:54.282192",
+    "flags": [],
+    "sources": {
+      "tax": {
+        "status": "local_only",
+        "path": "data/raw/baltimore_tax_lien.csv"
+      },
+      "ce": {
+        "status": "local_only",
+        "path": "data/raw/baltimore_citations.csv"
+      }
+    }
+  },
+  {
+    "city_id": "miami_dade",
+    "city_name": "Miami-Dade, FL",
+    "checked_at": "2026-03-22T05:13:54.297190",
+    "flags": [
+      "ce source DOWN: https://gis-mdc.muni.org/arcgis/rest/services/CodeEnforcementPublic/MapServer/0"
+    ],
+    "sources": {
+      "tax": {
+        "status": "local_only",
+        "path": "data/raw/miami_dade_tax.csv"
+      },
+      "ce": {
+        "url": "https://gis-mdc.muni.org/arcgis/rest/services/CodeEnforcementPublic/MapServer/0",
+        "reachable": false,
+        "error": "HTTPSConnectionPool(host='gis-mdc.muni.org', port=443): Max retries exceeded with url: /arcgis/rest/services/CodeEnforcementPublic/MapServer/0 (Caused by NameResolutionError(\"HTTPSConnection(host='gis-mdc.muni.org', port=443): Failed to resolve 'gis-mdc.muni.org' ([Errno 11001] getaddrinfo failed)\"))"
+      }
+    }
+  },
+  {
+    "city_id": "dallas",
+    "city_name": "Dallas, TX",
+    "checked_at": "2026-03-22T05:13:55.532191",
+    "flags": [
+      "tax SCHEMA CHANGE: ['DUE_DATE', 'LEVY_BALANCE', 'SUIT', 'TAX_UNIT_ACCT', 'TOT_AMT_DUE']"
+    ],
+    "sources": {
+      "tax": {
+        "url": "https://www.dallascounty.org/departments/tax/tax-roll.php",
+        "reachable": true,
+        "status_code": 200,
+        "schema": {
+          "schema_ok": false,
+          "missing_fields": [
+            "DUE_DATE",
+            "LEVY_BALANCE",
+            "SUIT",
+            "TAX_UNIT_ACCT",
+            "TOT_AMT_DUE"
+          ],
+          "source_fields_sample": [
+            "<!DOCTYPE html>"
+          ]
+        }
+      },
+      "ce": {
+        "url": "https://www.dallasopendata.com/resource/d7e7-envw.json",
+        "reachable": true,
+        "status_code": 200,
+        "schema": {
+          "schema_ok": true,
+          "missing_fields": [],
+          "source_fields_sample": [
+            "address",
+            "city_council_district",
+            "closed_date",
+            "created_date",
+            "department",
+            "ert_estimated_response_time",
+            "lat_location",
+            "method_received_description",
+            "outcome",
+            "overall_service_request_due_date"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "city_id": "fort_worth",
+    "city_name": "Fort Worth, TX",
+    "checked_at": "2026-03-22T05:14:01.614129",
+    "flags": [],
+    "sources": {
+      "tax": {
+        "status": "local_only",
+        "path": "data/raw/fortworth_tax_parsed.csv"
+      },
+      "ce": {
+        "status": "local_only",
+        "path": "data/raw/fortworth_ce.csv"
+      }
+    }
+  },
+  {
+    "city_id": "orlando",
+    "city_name": "Orlando, FL",
+    "checked_at": "2026-03-22T05:14:01.633128",
+    "flags": [],
+    "sources": {
+      "tax": {
+        "status": "not_configured"
+      },
+      "ce": {
+        "url": "https://data.cityoforlando.net/resource/k6e8-nw6w.json",
+        "reachable": true,
+        "status_code": 200,
+        "schema": {
+          "schema_ok": true,
+          "missing_fields": [],
+          "source_fields_sample": [
+            "add_by",
+            "apno",
+            "case_comments",
+            "case_open_year",
+            "case_type",
+            "casedt",
+            "caseinfostatus",
+            "casename",
+            "casetype",
+            "cmsnr_nm"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "city_id": "fort_lauderdale",
+    "city_name": "Fort Lauderdale, FL",
+    "checked_at": "2026-03-22T05:14:04.983130",
+    "flags": [],
+    "sources": {
+      "tax": {
+        "status": "local_only",
+        "path": "data/raw/fortlauderdale_tax.csv"
+      },
+      "ce": {
+        "status": "local_only",
+        "path": "data/raw/fortlauderdale_ce.csv"
+      }
+    }
+  },
+  {
+    "city_id": "jacksonville",
+    "city_name": "Jacksonville, FL",
+    "checked_at": "2026-03-22T05:14:05.154094",
+    "flags": [],
+    "sources": {
+      "tax": {
+        "status": "local_only",
+        "path": ""
+      },
+      "ce": {
+        "status": "local_only",
+        "path": "data/raw/jacksonville_ce.xlsx"
+      }
+    }
+  },
+  {
+    "city_id": "houston",
+    "city_name": "Houston, TX",
+    "checked_at": "2026-03-22T05:14:05.260096",
+    "flags": [],
+    "sources": {
+      "tax": {
+        "status": "local_only",
+        "path": ""
+      },
+      "ce": {
+        "status": "local_only",
+        "path": "data/raw/houston_ce.csv"
+      }
+    }
+  },
+  {
+    "city_id": "charlotte",
+    "city_name": "Charlotte, NC",
+    "checked_at": "2026-03-22T05:14:05.363093",
+    "flags": [
+      "ce schema check error: JSONDecodeError: Expecting value: line 1 column 1 (char 0)"
+    ],
+    "sources": {
+      "tax": {
+        "status": "local_only",
+        "path": "data/raw/charlotte_tax.csv"
+      },
+      "ce": {
+        "url": "https://gis.charlottenc.gov/arcgis/rest/services/HNS/CodeEnforcementCasesAll/MapServer/0",
+        "reachable": true,
+        "status_code": 200,
+        "schema": {
+          "schema_ok": null,
+          "error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)"
+        }
+      }
+    }
+  }
+]
