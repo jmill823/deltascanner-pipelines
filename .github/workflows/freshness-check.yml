@@ -1,8 +1,10 @@
 name: Monthly Freshness Check
+
 on:
   schedule:
     - cron: '0 8 15 * *'
   workflow_dispatch:
+
 jobs:
   freshness:
     runs-on: ubuntu-latest
@@ -12,9 +14,11 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install -r requirements.txt
+
       - name: Run freshness check
         run: python scripts/maintenance/freshness_check.py
         continue-on-error: true
+
       - name: Send notification
         if: always()
         env:
@@ -25,17 +29,11 @@ jobs:
           DATE=$(date +%Y-%m-%d)
           REPORT="data/freshness_report_${DATE}.json"
           if [ -f "$REPORT" ]; then
-            python -c "
-          import json; from scripts.maintenance.notify import send_notification
-          r=json.load(open('$REPORT')); flags=sum(len(c.get('flags',[])) for c in r)
-          body=f'Checked {len(r)} cities. {flags} flag(s).\n\n'
-          for c in r:
-            if c.get('flags'):
-              body+=f\"{c['city_name']}:\n\"
-              for fl in c['flags']: body+=f'  - {fl}\n'
-          send_notification(f'DeltaScanner Freshness - {flags} flags - $DATE', body)
-          "
+            python scripts/maintenance/send_freshness_email.py "$REPORT"
+          else
+            echo "No report found for $DATE"
           fi
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:

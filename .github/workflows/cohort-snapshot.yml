@@ -1,8 +1,10 @@
 name: Monthly Cohort Snapshot
+
 on:
   schedule:
     - cron: '0 8 1 * *'
   workflow_dispatch:
+
 jobs:
   snapshot:
     runs-on: ubuntu-latest
@@ -12,9 +14,11 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install -r requirements.txt
+
       - name: Run cohort snapshot
         run: python scripts/maintenance/cohort_snapshot.py
         continue-on-error: true
+
       - name: Send notification
         if: always()
         env:
@@ -25,14 +29,11 @@ jobs:
           DATE=$(date +%Y-%m-%d)
           DIFF="data/diff/cohort_diff_${DATE}.json"
           if [ -f "$DIFF" ]; then
-            python -c "
-          from scripts.maintenance.diff_report import format_report
-          from scripts.maintenance.notify import send_notification
-          import json; r=json.load(open('$DIFF'))
-          n=sum(1 for x in r if x.get('status')=='complete')
-          send_notification(f'DeltaScanner Cohort Snapshot - {n} cities - $DATE', format_report('$DIFF'))
-          "
+            python scripts/maintenance/send_cohort_email.py "$DIFF"
+          else
+            echo "No diff found for $DATE"
           fi
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
