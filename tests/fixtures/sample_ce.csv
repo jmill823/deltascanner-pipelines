@@ -1,0 +1,8 @@
+parcel_id,status,violation_date,address,violation_type
+001,Open,2025-06-01,100 MAIN ST,Structural
+001,Open,2025-07-15,100 MAIN ST,Property Maintenance
+002,Open,2025-08-01,200 OAK AVE,High Grass
+003,Closed,2025-01-01,300 ELM BLVD,Nuisance
+003,Open,2025-09-01,300 ELM BLVD,Structural
+003,Open,2025-10-01,300 ELM BLVD,Property Maintenance
+005,Open,2025-03-01,500 MAPLE DR,Structural

@@ -1,0 +1,6 @@
+parcel_id,total_due,years_delinquent,owner,address
+001,15000,3,Owner A,100 MAIN ST
+002,8500,2,Owner B,200 OAK AVE
+003,25000,5,Owner C,300 ELM BLVD
+004,3000,1,Owner D,400 PINE RD
+005,50000,4,Owner E,500 MAPLE DR

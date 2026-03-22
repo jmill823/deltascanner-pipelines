@@ -1,0 +1,42 @@
+name: Monthly Cohort Snapshot
+on:
+  schedule:
+    - cron: '0 8 1 * *'
+  workflow_dispatch:
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - name: Run cohort snapshot
+        run: python scripts/maintenance/cohort_snapshot.py
+        continue-on-error: true
+      - name: Send notification
+        if: always()
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
+        run: |
+          DATE=$(date +%Y-%m-%d)
+          DIFF="data/diff/cohort_diff_${DATE}.json"
+          if [ -f "$DIFF" ]; then
+            python -c "
+          from scripts.maintenance.diff_report import format_report
+          from scripts.maintenance.notify import send_notification
+          import json; r=json.load(open('$DIFF'))
+          n=sum(1 for x in r if x.get('status')=='complete')
+          send_notification(f'DeltaScanner Cohort Snapshot - {n} cities - $DATE', format_report('$DIFF'))
+          "
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cohort-snapshot
+          path: |
+            data/diff/cohort_diff_*.json
+            data/scored/*_snapshot_*.csv

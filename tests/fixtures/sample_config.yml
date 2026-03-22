@@ -1,0 +1,54 @@
+city_id: test_city
+city_name: "Test City, ST"
+state: ST
+county: Test
+score_version: test-v1
+pattern: socrata_address
+
+sources:
+  tax:
+    platform: csv_direct
+    path: tests/fixtures/sample_tax.csv
+    join_key:
+      field: parcel_id
+      normalize: strip_to_digits
+    fields:
+      balance: total_due
+      years_delinquent: years_delinquent
+      owner_name: owner
+      situs_address: address
+
+  ce:
+    platform: csv_direct
+    path: tests/fixtures/sample_ce.csv
+    join_key:
+      field: parcel_id
+      normalize: strip_to_digits
+    fields:
+      status: status
+      status_whitelist: ["Open", "Active"]
+      date: violation_date
+      address: address
+
+  enrichment: null
+
+scoring:
+  method: intersection
+  components:
+    - name: delinquency_amount
+      source_field: total_delinquent_balance
+      weight: 0.50
+      normalization: log
+    - name: delinquency_duration
+      source_field: years_delinquent
+      weight: 0.20
+      normalization: minmax
+    - name: active_violations
+      source_field: active_violations
+      weight: 0.30
+      normalization: log
+
+output:
+  expected_parcel_range: [2, 10]
+  deal_flow_threshold: 50
+  deal_flow_min_balance: 5000
