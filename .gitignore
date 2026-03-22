@@ -1,0 +1,8 @@
+data/raw/
+data/scored/*.csv
+data/web-stage/*.csv
+*.pyc
+__pycache__/
+.env
+*.egg-info/
+.pytest_cache/
