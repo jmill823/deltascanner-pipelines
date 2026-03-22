@@ -2,7 +2,7 @@ city_id: miami_dade
 city_name: "Miami-Dade, FL"
 state: FL
 county: Miami-Dade
-score_version: miami-v1
+score_version: miami-v2
 pattern: fl_nal
 
 sources:
@@ -55,28 +55,22 @@ sources:
 
 scoring:
   method: intersection
+  # Recency component REMOVED per Jeff review 2026-03-21. No recency in any form.
   components:
-    - name: delinquency_amount
-      source_field: total_delinquent_balance
-      weight: 0.35
-      normalization: log
     - name: delinquency_duration
       source_field: years_delinquent
-      weight: 0.25
+      weight: 0.50
       normalization: minmax
+    - name: delinquency_amount
+      source_field: total_delinquent_balance
+      weight: 0.40
+      normalization: log
     - name: active_violations
       source_field: active_violations
-      weight: 0.20
+      weight: 0.10
       normalization: log
-    - name: violation_recency
-      source_field: days_since_last_violation
-      weight: 0.10
-      normalization: inverse_days
-      # TODO: REMOVE - freshness-based recency prohibited. See DEVIATIONS.md.
-    - name: tax_deed_flag
-      source_field: has_deed
-      weight: 0.10
-      normalization: binary
+  # Tax weight: 90% (duration 50% + amount 40%). CE: 10%. Meets 50% floor.
+  # Deed flag removed — folded into duration signal. Miami v2 template weights.
 
 output:
   expected_parcel_range: [10000, 25000]

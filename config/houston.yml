@@ -4,6 +4,8 @@ state: TX
 county: Harris
 score_version: houston-v1
 pattern: tx_fixedwidth_hcad
+ce_data_stale: true
+ce_data_date: "2018-08"  # CE data through Aug 2018 only. V2 upgrade planned.
 
 sources:
   tax:
@@ -38,7 +40,8 @@ sources:
       status_whitelist: ["OPEN"]
       count: Count_of_Violations
       date: RecordCreateDate
-    # NOTE: CE data stale (Aug 2018). V2 upgrade planned.
+    # WARNING: CE data is from Aug 2018 — 7+ years stale.
+    # Scoring weights unchanged per Jeff review. V2 will refresh.
 
   enrichment:
     platform: csv_direct
@@ -81,7 +84,7 @@ scoring:
       source_field: ce_total_count
       weight: 0.10
       normalization: log
-  # CE downweighted due to stale 2018 data.
+  # Tax: 75%. CE: 25% (downweighted — stale 2018 data).
 
 output:
   expected_parcel_range: [8000, 15000]

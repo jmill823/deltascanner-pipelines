@@ -4,6 +4,7 @@ state: PA
 county: Philadelphia
 score_version: philly-v2
 pattern: ce_only
+ce_only: true  # Bypasses tax >= 50% and intersection checks in validator
 
 sources:
   tax: null  # PRR pending. CE-only model.
@@ -44,7 +45,6 @@ sources:
 
 scoring:
   method: ce_only
-  # DEVIATION: Cannot meet intersection or tax >= 50% rules.
   components:
     - name: violation_count
       source_field: active_violations

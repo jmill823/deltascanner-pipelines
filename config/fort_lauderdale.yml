@@ -17,6 +17,8 @@ sources:
       balance: TOTAL_AMOUNT
       owner_name: Owner
       situs_address: Address
+      # TODO: confirm years_delinquent is derivable from Broward cert sale data.
+      # If cert sale only has a single year snapshot, duration defaults to 1.
 
   ce:
     platform: arcgis
@@ -53,13 +55,18 @@ scoring:
   components:
     - name: delinquency_amount
       source_field: total_delinquent_balance
-      weight: 0.55
-      normalization: log
-    - name: active_ce_cases
-      source_field: active_violations
       weight: 0.45
       normalization: log
-  # WARNING: Only 2 components - below minimum 3. See DEVIATIONS.md.
+    - name: delinquency_duration
+      source_field: years_delinquent
+      weight: 0.15
+      normalization: minmax
+    - name: active_ce_cases
+      source_field: active_violations
+      weight: 0.40
+      normalization: log
+  # Tax weight: 60% (amount 45% + duration 15%). CE: 40%. Meets 50% floor.
+  # 3 components. Meets minimum. (Corrected per Jeff review 2026-03-21)
 
 output:
   expected_parcel_range: [15000, 30000]

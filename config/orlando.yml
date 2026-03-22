@@ -4,6 +4,7 @@ state: FL
 county: Orange
 score_version: orlando-v1
 pattern: ce_only
+ce_only: true  # Bypasses tax >= 50% and intersection checks in validator
 
 sources:
   tax: null  # PRR to Orange County Tax Collector pending
@@ -46,7 +47,6 @@ sources:
 
 scoring:
   method: ce_only
-  # DEVIATION: Cannot meet intersection or tax >= 50% rules.
   components:
     - name: active_case_count
       source_field: active_violations

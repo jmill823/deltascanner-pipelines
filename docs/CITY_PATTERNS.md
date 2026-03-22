@@ -8,6 +8,9 @@ Known data patterns across cities.
 - Join: Address-based (county accounts differ between tax and CE systems)
 - Enrichment: SPTD/SPTB property type codes from tax data
 - Cities: Dallas, Fort Worth, Houston
+- **Houston staleness note:** Houston CE data is from Aug 2018 (7+ years stale).
+  Config has `ce_data_stale: true` and `ce_data_date: "2018-08"`. V2 upgrade planned
+  with fresh CE source. Scoring weights unchanged — CE downweighted to 25% total.
 
 ## Florida NAL Pattern (fl_nal)
 - Parcel spine: FL DOR NAL file (statewide, filtered by CO_NO)
@@ -30,6 +33,6 @@ Known data patterns across cities.
 
 ## CE-Only Pattern (ce_only)
 - Tax delinquency data not yet available (PRR pending)
-- Cannot meet intersection or tax >= 50% rules
+- Config flag: `ce_only: true` — validator skips tax >= 50% and intersection checks
 - Temporary models until tax data arrives
 - Cities: Philadelphia, Orlando

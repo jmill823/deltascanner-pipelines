@@ -46,17 +46,17 @@ scoring:
   components:
     - name: delinquency_amount
       source_field: total_delinquent_balance
-      weight: 0.40
+      weight: 0.50
       normalization: log
     - name: active_violations
       source_field: active_violations
-      weight: 0.35
+      weight: 0.30
       normalization: log
     - name: violation_volume
       source_field: total_violations
-      weight: 0.25
+      weight: 0.20
       normalization: log
-  # WARNING: Tax weight 40% < 50% floor. Needs rebalancing. See DEVIATIONS.md.
+  # Tax weight: 50%. CE: 50%. Meets 50% floor. (Rebalanced per Jeff review 2026-03-21)
 
 output:
   expected_parcel_range: [1000, 2000]
