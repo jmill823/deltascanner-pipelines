@@ -1,0 +1,67 @@
+city_id: orlando
+city_name: "Orlando, FL"
+state: FL
+county: Orange
+score_version: orlando-v1
+pattern: ce_only
+
+sources:
+  tax: null  # PRR to Orange County Tax Collector pending
+
+  ce:
+    platform: socrata
+    url: "https://data.cityoforlando.net/resource/k6e8-nw6w.json"
+    path: data/raw/orlando_ce.csv
+    join_key:
+      field: parcel_id  # CRITICAL: this is ALT_KEY in NAL, NOT PARCEL_ID
+      normalize: strip_to_digits
+    fields:
+      status: caseinfostatus
+      status_whitelist: ["Open", "Lien", "ENF", "CEB", "Foreclose"]
+      case_type: case_type
+      date: casedt
+      resolved_date: resdt
+      dept_rev_class: dept_of_revenue_class
+    enforcement_stage_tiers:
+      Foreclose: 100
+      Lien: 85
+      CEB: 65
+      ENF: 50
+      Open: 30
+
+  enrichment:
+    platform: nal
+    path: data/raw/orlando_nal.csv
+    join_key:
+      field: ALT_KEY  # NOT PARCEL_ID (0% match). ALT_KEY = 98.1% match.
+      normalize: strip_to_digits
+    fields:
+      property_type:
+        field: dept_of_revenue_class
+        mapping: null
+      owner_name: OWN_NAME
+      situs_address: PHY_ADDR1
+      assessed_value: JV
+      year_built: ACT_YR_BLT
+
+scoring:
+  method: ce_only
+  # DEVIATION: Cannot meet intersection or tax >= 50% rules.
+  components:
+    - name: active_case_count
+      source_field: active_violations
+      weight: 0.40
+      normalization: log
+    - name: enforcement_stage
+      source_field: max_enforcement_stage
+      weight: 0.35
+      normalization: tiered
+    - name: case_volume
+      source_field: total_violations
+      weight: 0.25
+      normalization: log
+
+output:
+  expected_parcel_range: [25000, 40000]
+  deal_flow_threshold: 50
+  deal_flow_min_balance: null

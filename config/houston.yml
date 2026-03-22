@@ -1,0 +1,89 @@
+city_id: houston
+city_name: "Houston, TX"
+state: TX
+county: Harris
+score_version: houston-v1
+pattern: tx_fixedwidth_hcad
+
+sources:
+  tax:
+    platform: csv_direct
+    paths:
+      - data/raw/houston_tax_nameaddr.csv
+      - data/raw/houston_tax_billing.csv
+    format: fixed_width
+    join_key:
+      field: account
+      normalize: pad_digits_13
+    fields:
+      account_pos: "0:13"
+      class_code_pos: "14:16"
+      owner_name_pos: "17:57"
+      property_address_pos: "409:449"
+      property_zip_pos: "450:455"
+      total_value_pos: "480:493"
+      billing_account_pos: "2:15"
+      tax_year_pos: "15:19"
+      suit_flag_pos: "19:20"
+      total_tax_due_pos: "234:243"
+
+  ce:
+    platform: csv_direct
+    path: data/raw/houston_ce.csv
+    join_key:
+      field: HCAD
+      normalize: pad_digits_13
+    fields:
+      status: Project_Status
+      status_whitelist: ["OPEN"]
+      count: Count_of_Violations
+      date: RecordCreateDate
+    # NOTE: CE data stale (Aug 2018). V2 upgrade planned.
+
+  enrichment:
+    platform: csv_direct
+    paths:
+      - data/raw/houston_hcad_real_acct.csv
+      - data/raw/houston_hcad_bldg_res.csv
+      - data/raw/houston_hcad_bldg_other.csv
+    join_key:
+      field: acct
+      normalize: pad_digits_13
+    fields:
+      property_type:
+        field: state_class
+        mapping: hcad_class_code
+      owner_name: mailto
+      owner_address: mail_addr_1
+      situs_address: site_addr_1
+      situs_zip: site_addr_3
+      assessed_value: tot_appr_val
+      year_built: date_erected
+      sqft: im_sq_ft
+      unit_count: units
+
+scoring:
+  method: intersection
+  components:
+    - name: delinquency_amount
+      source_field: total_delinquent_balance
+      weight: 0.45
+      normalization: log
+    - name: delinquency_duration
+      source_field: years_delinquent
+      weight: 0.30
+      normalization: minmax
+    - name: ce_open_2018
+      source_field: ce_open_count
+      weight: 0.15
+      normalization: log
+    - name: ce_total
+      source_field: ce_total_count
+      weight: 0.10
+      normalization: log
+  # CE downweighted due to stale 2018 data.
+
+output:
+  expected_parcel_range: [8000, 15000]
+  deal_flow_threshold: 50
+  deal_flow_min_balance: 5000

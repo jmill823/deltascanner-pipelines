@@ -1,0 +1,75 @@
+city_id: dallas
+city_name: "Dallas, TX"
+state: TX
+county: Dallas
+score_version: dallas-v1
+pattern: tx_trw_address
+
+sources:
+  tax:
+    platform: csv_direct
+    url: "https://www.dallascounty.org/departments/tax/tax-roll.php"
+    path: data/raw/dallas_trw_parsed.csv
+    format: fixed_width
+    join_key:
+      field: dcad_account
+      normalize: null  # address-based join through DCAD crosswalk
+    fields:
+      account: TAX_UNIT_ACCT
+      balance: TOT_AMT_DUE
+      levy_balance: LEVY_BALANCE
+      suit_flag: SUIT
+      due_date: DUE_DATE
+
+  ce:
+    platform: socrata
+    url: "https://www.dallasopendata.com/resource/d7e7-envw.json"
+    path: data/raw/dallas_311_ccs.csv
+    filter: "service_request_type LIKE '%CCS%'"
+    join_key:
+      field: address
+      normalize: normalize_address
+    fields:
+      status: status
+      status_whitelist: ["New", "In Progress", "Escalated", "On Hold"]
+      date: created_date
+      closed_date: closed_date
+      address: address
+
+  enrichment:
+    platform: csv_direct
+    path: data/raw/dallas_dcad_crosswalk.csv
+    join_key:
+      field: dcad_account
+      normalize: null
+    fields:
+      property_type:
+        field: SPTD_Code
+        mapping: sptd_property_type
+      owner_name: Owner_Name
+      owner_address: Owner_Address
+      situs_address: Situs_Address
+      assessed_value: Assessed_Value
+      year_built: Year_Built
+      sqft: Building_SqFt
+
+scoring:
+  method: intersection
+  components:
+    - name: delinquency_amount
+      source_field: total_delinquent_balance
+      weight: 0.40
+      normalization: log
+    - name: delinquency_duration
+      source_field: years_delinquent
+      weight: 0.20
+      normalization: minmax
+    - name: complaint_volume
+      source_field: active_violations
+      weight: 0.40
+      normalization: log
+
+output:
+  expected_parcel_range: [15000, 25000]
+  deal_flow_threshold: 50
+  deal_flow_min_balance: 5000

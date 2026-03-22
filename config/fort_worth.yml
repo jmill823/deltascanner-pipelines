@@ -1,0 +1,78 @@
+city_id: fort_worth
+city_name: "Fort Worth, TX"
+state: TX
+county: Tarrant
+score_version: fortworth-v1
+pattern: tx_fixedwidth_address
+
+sources:
+  tax:
+    platform: csv_direct
+    path: data/raw/fortworth_tax_parsed.csv
+    format: fixed_width
+    join_key:
+      field: situs_address
+      normalize: normalize_address
+    fields:
+      account: Account
+      balance: amt_due
+      delinq_date: delinq_date
+      sptb_code: STATE_USE_CODE
+      situs_street_num: Situs_Num
+      situs_street_name: Situs_Name
+      owner_name: Owner
+      assessed_value: Assessed_Value
+
+  ce:
+    platform: arcgis
+    path: data/raw/fortworth_ce.csv
+    join_key:
+      field: address
+      normalize: normalize_address
+    fields:
+      status: Status
+      status_whitelist: ["Open", "Active"]
+      date: DateCreated
+      case_type: ViolationType
+      address: Address
+    severity_tiers:
+      Substandard: 100
+      "Property Maintenance": 70
+      "High Grass": 30
+      default: 30
+
+  enrichment:
+    platform: arcgis
+    path: data/raw/fortworth_parcels.csv
+    join_key:
+      field: situs_address
+      normalize: normalize_address
+    fields:
+      property_type:
+        field: STATE_USE_CODE
+        mapping: sptb_property_type
+
+scoring:
+  method: intersection
+  components:
+    - name: delinquency_amount
+      source_field: total_delinquent_balance
+      weight: 0.40
+      normalization: log
+    - name: delinquency_duration
+      source_field: years_delinquent
+      weight: 0.15
+      normalization: minmax
+    - name: active_violations
+      source_field: active_violations
+      weight: 0.30
+      normalization: log
+    - name: severity_tier
+      source_field: max_severity
+      weight: 0.15
+      normalization: linear
+
+output:
+  expected_parcel_range: [50000, 75000]
+  deal_flow_threshold: 55
+  deal_flow_min_balance: 5000

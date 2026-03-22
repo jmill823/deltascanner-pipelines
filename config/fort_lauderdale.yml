@@ -1,0 +1,67 @@
+city_id: fort_lauderdale
+city_name: "Fort Lauderdale, FL"
+state: FL
+county: Broward
+score_version: fortlauderdale-v1
+pattern: fl_nal
+
+sources:
+  tax:
+    platform: csv_direct
+    path: data/raw/fortlauderdale_tax.csv
+    join_key:
+      field: folio
+      normalize: strip_dashes_12digit
+    fields:
+      folio: Folio
+      balance: TOTAL_AMOUNT
+      owner_name: Owner
+      situs_address: Address
+
+  ce:
+    platform: arcgis
+    path: data/raw/fortlauderdale_ce.csv
+    join_key:
+      field: address
+      normalize: normalize_address
+    fields:
+      parcel_id: PARCELID
+      status: CASESTATUS
+      status_whitelist: ["O"]
+      date: INITDATE
+      case_type: case_type
+      address: SITEADDRESS
+
+  enrichment:
+    platform: nal
+    path: data/raw/fortlauderdale_nal.csv
+    join_key:
+      field: folio
+      normalize: strip_dashes_12digit
+    fields:
+      property_type:
+        field: DOR_UC
+        mapping: fl_dor_use_code
+      owner_name: OWN_NAME
+      situs_address: PHY_ADDR1
+      assessed_value: JV
+      year_built: ACT_YR_BLT
+      sqft: TOT_LVG_AREA
+
+scoring:
+  method: intersection
+  components:
+    - name: delinquency_amount
+      source_field: total_delinquent_balance
+      weight: 0.55
+      normalization: log
+    - name: active_ce_cases
+      source_field: active_violations
+      weight: 0.45
+      normalization: log
+  # WARNING: Only 2 components - below minimum 3. See DEVIATIONS.md.
+
+output:
+  expected_parcel_range: [15000, 30000]
+  deal_flow_threshold: 50
+  deal_flow_min_balance: 5000

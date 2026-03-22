@@ -1,0 +1,67 @@
+city_id: charlotte
+city_name: "Charlotte, NC"
+state: NC
+county: Mecklenburg
+score_version: charlotte-v1
+pattern: address_only
+
+sources:
+  tax:
+    platform: csv_direct
+    path: data/raw/charlotte_tax.csv
+    join_key:
+      field: address
+      normalize: normalize_address
+    fields:
+      parcel_id: parcel_id
+      balance: amount_due
+      years_delinquent: years_delinquent
+      owner_name: owner_name
+      situs_address: address
+      legal_description: legal_description
+
+  ce:
+    platform: arcgis
+    url: "https://gis.charlottenc.gov/arcgis/rest/services/HNS/CodeEnforcementCasesAll/MapServer/0"
+    path: data/raw/charlotte_ce.csv
+    join_key:
+      field: address
+      normalize: normalize_address
+    fields:
+      status: CaseStatus
+      status_whitelist: ["New", "Open"]
+      date: DateCreated
+      closed_date: DateClosed
+      address: FullAddress
+
+  enrichment: null  # TODO: identify Charlotte enrichment source
+
+scoring:
+  method: intersection
+  components:
+    - name: delinquency_amount
+      source_field: total_delinquent_balance
+      weight: 0.35
+      normalization: minmax
+    - name: delinquency_recurrence
+      source_field: years_delinquent
+      weight: 0.15
+      normalization: ordinal
+    - name: active_violations
+      source_field: active_violations
+      weight: 0.35
+      normalization: minmax
+    - name: case_duration
+      source_field: avg_case_duration_days
+      weight: 0.15
+      normalization: minmax
+  modifiers:
+    - name: multi_type_boost
+      condition: "multi_type_flag == 1"
+      effect: score_additive
+      value: 5
+
+output:
+  expected_parcel_range: [60000, 100000]
+  deal_flow_threshold: 20
+  deal_flow_min_balance: 1000

@@ -1,0 +1,75 @@
+city_id: jacksonville
+city_name: "Jacksonville, FL"
+state: FL
+county: Duval
+score_version: jacksonville-v1
+pattern: fl_nal
+
+sources:
+  tax:
+    platform: csv_direct
+    paths:
+      - data/raw/jacksonville_unpaid_current.csv
+      - data/raw/jacksonville_delq_2yr.csv
+      - data/raw/jacksonville_lands_available.csv
+    join_key:
+      field: folio
+      normalize: strip_dashes_10digit
+    fields:
+      account: "Account Number"
+      balance: Balance
+      tax_year: "Tax Year"
+
+  ce:
+    platform: xlsx
+    path: data/raw/jacksonville_ce.xlsx
+    join_key:
+      field: folio
+      normalize: strip_dashes_10digit
+    fields:
+      re_number: "RE Number"
+      status: "Case Status"
+      status_whitelist: ["Active"]
+      code_section: "Code Section"
+
+  enrichment:
+    platform: nal
+    path: data/raw/jacksonville_nal.csv
+    join_key:
+      field: PARCEL_ID
+      normalize: strip_trailing_r
+    fields:
+      property_type:
+        field: DOR_UC
+        mapping: fl_dor_use_code
+      owner_name: OWN_NAME
+      situs_address: PHY_ADDR1
+      assessed_value: JV
+      year_built: ACT_YR_BLT
+      sqft: TOT_LVG_AREA
+      unit_count: NO_RES_UNTS
+
+scoring:
+  method: intersection
+  components:
+    - name: delinquency_amount
+      source_field: total_delinquent_balance
+      weight: 0.40
+      normalization: log
+    - name: delinquency_duration
+      source_field: years_delinquent
+      weight: 0.20
+      normalization: minmax
+    - name: active_violations
+      source_field: active_violations
+      weight: 0.25
+      normalization: log
+    - name: total_violations
+      source_field: total_violations
+      weight: 0.15
+      normalization: log
+
+output:
+  expected_parcel_range: [3000, 6000]
+  deal_flow_threshold: 45
+  deal_flow_min_balance: 5000

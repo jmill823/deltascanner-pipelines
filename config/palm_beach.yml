@@ -1,0 +1,84 @@
+city_id: palm_beach
+city_name: "Palm Beach County, FL"
+state: FL
+county: Palm Beach
+score_version: palmbeach-v1
+pattern: fl_nal
+
+sources:
+  tax:
+    platform: xlsx
+    path: data/raw/palmbeach_tax.xlsx
+    join_key:
+      field: pcn
+      normalize: strip_dashes_17digit
+    fields:
+      pin: PIN
+      property_type_raw: "Property Type"
+      situs_address: "Situs Address"
+      owner_name: "Current Owner"
+      owner_address: "Mailing Address"
+      tax_year_columns:
+        - "2024 Due"
+        - "2023 Due"
+        - "2022 Due"
+        - "2021 Due"
+        - "2020 Due"
+        - "2019 Due"
+        - "2018 Due"
+
+  ce:
+    platform: csv_direct
+    path: data/raw/palmbeach_ce.csv
+    join_key:
+      field: pcn
+      normalize: strip_dashes_17digit
+    fields:
+      status: case_status
+      status_whitelist: ["ACTIVE", "FINE"]
+      lien_status: lien_status
+      date: date_issued
+
+  enrichment:
+    platform: nal
+    path: data/raw/palmbeach_nal.csv
+    join_key:
+      field: PARCEL_ID
+      normalize: strip_dashes_17digit
+    fields:
+      property_type:
+        field: DOR_UC
+        mapping: fl_dor_use_code
+      owner_name: OWN_NAME
+      situs_address: PHY_ADDR1
+      assessed_value: JV
+      year_built: ACT_YR_BLT
+      sqft: TOT_LVG_AREA
+      lot_sqft: LND_SQFOOT
+      unit_count: NO_RES_UNTS
+
+scoring:
+  method: intersection
+  # WARNING: Original used union. Changed to intersection per rules. See DEVIATIONS.md.
+  components:
+    - name: delinquency_amount
+      source_field: total_delinquent_balance
+      weight: 0.40
+      normalization: log
+    - name: delinquency_duration
+      source_field: years_delinquent
+      weight: 0.20
+      normalization: minmax
+    - name: active_violations
+      source_field: active_violations
+      weight: 0.25
+      normalization: log
+    - name: lien_flag
+      source_field: has_lien
+      weight: 0.15
+      normalization: binary
+
+output:
+  expected_parcel_range: [5000, 50000]
+  deal_flow_threshold: 50
+  deal_flow_min_balance: 5000
