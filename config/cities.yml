@@ -1,6 +1,6 @@
-# DeltaScanner — Master City Registry
+# DeltaScanner - Master City Registry
 # Machine-readable source of truth for all cities and their status.
-# Last updated: 2026-03-21
+# Last updated: 2026-03-23
 
 cities:
   - id: austin
@@ -133,3 +133,14 @@ cities:
     score_version: charlotte-v1
     config: config/charlotte.yml
     scored_parcels: 80622
+
+  - id: sf
+    name: "San Francisco, CA"
+    state: CA
+    county: San Francisco
+    pattern: socrata_parcelid
+    status: live
+    score_version: sf-v1
+    config: config/sf.yml
+    scored_parcels: 10441
+    notes: "CE-only (CPRA pending for tax delinquency). Upgrade to composite when data arrives."

@@ -1,0 +1,91 @@
+# San Francisco, CA — sf-v1 (CE-only)
+# Built: 2026-03-23
+# Model: CE-only (CPRA pending for tax delinquency)
+# Join: block+lot (separate fields, alpha suffixes stripped)
+
+city_id: sf
+city_name: "San Francisco, CA"
+state: CA
+county: San Francisco
+score_version: sf-v1
+pattern: socrata_parcelid
+ce_only: true
+
+sources:
+  tax:
+    status: not_configured  # CPRA pending - TTR.Communications@sfgov.org
+
+  ce:
+    platform: socrata
+    url: "https://data.sfgov.org/resource/gm2e-bten.json"
+    join_key:
+      field: block+lot  # Join on separate block and lot fields
+      normalize: sf_block_lot_join  # Strip alpha suffixes, 4-digit block + 3-digit lot
+    fields:
+      status: status
+      status_whitelist: ["Active"]
+      date: date_filed
+      address_number: street_number
+      address_street: street_name
+      address_suffix: street_suffix
+      zip: zip_code
+      division: assigned_division
+      complaint_desc: complaint_description
+      complaint_id: complaint_number
+
+  enrichment:
+    platform: socrata
+    url: "https://data.sfgov.org/resource/wv5m-vpq2.json"
+    filter: "closed_roll_year='2024'"
+    join_key:
+      field: block+lot
+      normalize: sf_block_lot_join
+    fields:
+      property_type:
+        field: property_class_code
+        mapping:
+          D: Residential
+          Z: Residential
+          F: Residential
+          A: Residential
+          A5: Residential
+          A15: Residential
+          FS: Residential
+          LZ: Residential
+          ZBM: Residential
+          TS: Residential
+          C: Commercial
+          O: Commercial
+          H: Commercial
+          G: Commercial
+          V: Vacant
+          VR: Vacant
+          VCI: Vacant
+          I: Industrial
+      assessed_value: assessed_land_value + assessed_improvement_value
+      year_built: year_property_built
+      unit_count: number_of_units
+      property_class_def: property_class_code_definition
+
+scoring:
+  method: ce_only
+  components:
+    - name: active_violations
+      source_field: active_violations
+      weight: 0.40
+      normalization: log
+    - name: case_duration
+      source_field: years_active
+      weight: 0.35
+      normalization: minmax
+    - name: division_diversity
+      source_field: division_count
+      weight: 0.25
+      normalization: minmax
+  # Upgrade path: when CPRA delivers delinquency data, rebuild as composite
+  # using Miami v2 template (50% duration / 35% amount / 15% violations)
+
+output:
+  expected_parcel_range: [10000, 20000]
+  deal_flow_threshold: 50
+  deal_flow_min_active: 3
