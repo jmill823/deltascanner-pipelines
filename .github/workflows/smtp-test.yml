@@ -1,0 +1,56 @@
+name: SMTP Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-email:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Send test email
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
+        run: |
+          python << 'PYEOF'
+          import smtplib, os
+          from email.mime.text import MIMEText
+
+          user = os.environ.get('SMTP_USER', '')
+          pwd  = os.environ.get('SMTP_PASS', '')
+          to   = os.environ.get('NOTIFY_EMAIL', '')
+
+          print(f"SMTP_USER: {user}")
+          print(f"SMTP_PASS length: {len(pwd)} chars")
+          print(f"NOTIFY_EMAIL: {to}")
+
+          if not all([user, pwd, to]):
+              print("ERROR: Missing one or more secrets"); exit(1)
+
+          msg = MIMEText("Pipeline notifications are working. Sent from GitHub Actions via smtp.gmail.com:587 + STARTTLS.")
+          msg['Subject'] = "SMTP test -- pipeline notifications live"
+          msg['From'] = user
+          msg['To'] = to
+
+          try:
+              with smtplib.SMTP('smtp.gmail.com', 587) as s:
+                  s.ehlo()
+                  s.starttls()
+                  s.ehlo()
+                  s.login(user, pwd)
+                  s.send_message(msg)
+              print("SUCCESS: Email sent")
+          except smtplib.SMTPAuthenticationError as e:
+              print(f"AUTH FAILED: {e}")
+              print("Fix: Repo Settings > Secrets > SMTP_PASS must be exactly 16 chars (Google app password, no spaces)")
+              exit(1)
+          except Exception as e:
+              print(f"ERROR: {e}")
+              exit(1)
+          PYEOF
